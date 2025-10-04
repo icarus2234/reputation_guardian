@@ -57,6 +57,7 @@ export interface Mention {
 export interface MentionFilter {
   product_id?: number;
   platform?: string;
+  platforms?: string[]; // Support multiple platforms
   sentiment?: string;
   intent?: string;
   priority?: string;

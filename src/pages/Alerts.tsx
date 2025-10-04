@@ -30,6 +30,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -43,6 +44,7 @@ import { Alert, AlertSeverity } from '@/types/alert';
 
 const Alerts: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { alerts, stats, loading, error } = useAppSelector(
     (state) => state.alerts
   );
@@ -149,6 +151,29 @@ const Alerts: React.FC = () => {
           return newSet;
         });
       }
+    }
+  };
+
+  const handleGenerateResponse = () => {
+    if (selectedAlert) {
+      // Navigate to Responses page with prefilled data
+      navigate('/responses', {
+        state: {
+          prefilledData: {
+            mentionId: selectedAlert.id,
+            authorName: selectedAlert.author_name,
+            platform: selectedAlert.platform,
+            content: selectedAlert.content,
+            fullContent: selectedAlert.full_content,
+            sentiment: selectedAlert.sentiment,
+            originalDate: selectedAlert.original_date,
+            sourceUrl: selectedAlert.source_url,
+            rating: selectedAlert.rating,
+          },
+        },
+      });
+      // Close the dialog
+      setDialogOpen(false);
     }
   };
 
@@ -515,6 +540,14 @@ const Alerts: React.FC = () => {
               </Grid>
             </DialogContent>
             <DialogActions>
+              <Button
+                onClick={handleGenerateResponse}
+                color="secondary"
+                variant="outlined"
+                startIcon={<OpenInNewIcon />}
+              >
+                Generate Response
+              </Button>
               {!selectedAlert.is_marked ? (
                 <>
                   <Button

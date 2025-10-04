@@ -19,7 +19,16 @@ export const getMentions = async (
     // Add filters as query parameters
     if (filter.product_id)
       params.append('product_id', filter.product_id.toString());
-    if (filter.platform) params.append('platform', filter.platform);
+
+    // Handle multiple platforms
+    if (filter.platforms && filter.platforms.length > 0) {
+      filter.platforms.forEach((platform) => {
+        params.append('platform', platform);
+      });
+    } else if (filter.platform) {
+      params.append('platform', filter.platform);
+    }
+
     if (filter.sentiment) params.append('sentiment', filter.sentiment);
     if (filter.intent) params.append('intent', filter.intent);
     if (filter.priority) params.append('priority', filter.priority);

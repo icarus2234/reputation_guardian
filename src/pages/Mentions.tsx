@@ -74,8 +74,7 @@ const Mentions: React.FC = () => {
   const handleApplyFilters = () => {
     dispatch(
       setFilter({
-        platform:
-          selectedPlatforms.length > 0 ? selectedPlatforms[0] : undefined,
+        platforms: selectedPlatforms.length > 0 ? selectedPlatforms : undefined,
         from_date: startDate || undefined,
         to_date: endDate || undefined,
       })

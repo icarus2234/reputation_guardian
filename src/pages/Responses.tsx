@@ -63,28 +63,65 @@ const Responses: React.FC = () => {
 
   // Check if we have prefilled data from navigation
   useEffect(() => {
-    const state = location.state as { mention?: Mention } | null;
+    const state = location.state as {
+      mention?: Mention;
+      prefilledData?: any;
+    } | null;
     if (state?.mention) {
       const mention = state.mention;
       setMentionContent(mention.content);
       setMentionId(mention.id);
       setMentionData(mention);
+    } else if (state?.prefilledData) {
+      // Handle data from Alerts page
+      const prefilledData = state.prefilledData;
+      setMentionContent(prefilledData.content);
+      setMentionId(prefilledData.mentionId);
+      setMentionData({
+        id: prefilledData.mentionId,
+        content: prefilledData.content,
+        platform: prefilledData.platform,
+        author: {
+          name: prefilledData.authorName,
+          avatar_url: null,
+          profile_url: null,
+        },
+        sentiment: prefilledData.sentiment,
+        intent: 'complaint', // Default intent for alerts
+        priority: 'high', // Default priority for alerts
+        date: prefilledData.originalDate,
+        rating: prefilledData.rating,
+        confidence_score: 0.8,
+        keywords_matched: [],
+        topics: [],
+        response_suggested: {
+          should_respond: true,
+          urgency: 'high',
+          recommended_style: 'professional',
+          response_type: 'public',
+          key_points: [],
+        },
+        is_marked: false,
+        metadata: {
+          processed_date: new Date().toISOString(),
+          source_url: prefilledData.sourceUrl,
+          external_id: String(prefilledData.mentionId),
+        },
+      });
 
       // Auto-select style based on sentiment
-      if (mention.sentiment === 'negative') {
+      if (prefilledData.sentiment === 'negative') {
         setStyle('technical');
-      } else if (mention.sentiment === 'positive') {
+      } else if (prefilledData.sentiment === 'positive') {
         setStyle('friendly');
       }
 
       // Add context to custom instructions
       const contextInstructions = [
-        `Platform: ${mention.platform}`,
-        `Author: ${mention.author.name}`,
-        `Intent: ${mention.intent}`,
-        mention.topics?.length > 0
-          ? `Topics: ${mention.topics.join(', ')}`
-          : '',
+        `Platform: ${prefilledData.platform}`,
+        `Author: ${prefilledData.authorName}`,
+        `Sentiment: ${prefilledData.sentiment}`,
+        prefilledData.rating ? `Rating: ${prefilledData.rating}` : '',
       ]
         .filter(Boolean)
         .join('\n');
