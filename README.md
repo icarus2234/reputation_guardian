@@ -21,6 +21,7 @@
 - [Project Structure](#project-structure)
 - [Development](#development)
 - [Deployment](#deployment)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -681,6 +682,23 @@ The application includes several performance optimizations:
 - **Virtualization**: Efficient rendering of large lists
 - **Caching**: AI insights and API responses
 - **Optimized Bundles**: Tree shaking and minification
+
+## 📚 Documentation
+
+Detailed documentation is available in the [`docs/`](./docs/) folder:
+
+- **[📖 Documentation Index](./docs/README.md)** - Complete documentation index
+- **[🚀 Getting Started](./docs/GETTING_STARTED.md)** - Quick start guide
+- **[🔧 Development Setup](./docs/SETUP_NOTES.md)** - Detailed setup instructions
+- **[🔌 API Integration](./docs/API_INTEGRATION.md)** - API integration guides
+- **[🐛 Bug Fixes & Updates](./docs/)** - Technical fixes and updates
+
+### Quick Documentation Links
+
+- **Setup**: [Getting Started](./docs/GETTING_STARTED.md) | [Setup Notes](./docs/SETUP_NOTES.md)
+- **APIs**: [Dashboard API](./docs/DASHBOARD_API_INTEGRATION.md) | [Analytics API](./docs/ANALYTICS_API_INTEGRATION.md) | [Alerts API](./docs/ALERTS_API_INTEGRATION.md)
+- **Development**: [Linting Setup](./docs/LINTING_SETUP.md) | [OpenAI Setup](./docs/OPENAI_SETUP.md)
+- **Fixes**: [Contrast Fix](./docs/CONTRAST_FIX.md) | [Reputation Score Fix](./docs/REPUTATION_SCORE_FIX.md)
 
 ## 🤝 Contributing
 
