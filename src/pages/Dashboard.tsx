@@ -23,17 +23,10 @@ import {
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
   TipsAndUpdates as TipsIcon,
-  Cached as CachedIcon,
-  Clear as ClearIcon,
 } from '@mui/icons-material';
 import {
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -47,7 +40,6 @@ import { fetchAlertStats } from '@/store/slices/alerts';
 import {
   formatReputationScore,
   getPriorityColor,
-  getScoreColor,
 } from '@/utils/dashboardHelpers';
 import { generateDashboardInsights } from '@/services/dashboardInsights';
 import { DashboardData } from '@/types/analytics';
@@ -61,15 +53,8 @@ interface DashboardInsight {
 
 const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
-  const {
-    reputationScore,
-    sentimentTrend,
-    sentimentDistribution,
-    platformStats,
-    topIssues,
-    loading,
-    error,
-  } = useAppSelector((state) => state.analytics);
+  const { reputationScore, sentimentTrend, topIssues, loading, error } =
+    useAppSelector((state) => state.analytics);
   const alertStats = useAppSelector((state) => state.alerts.stats);
   const [insights, setInsights] = useState<DashboardInsight | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
@@ -79,7 +64,6 @@ const Dashboard: React.FC = () => {
     null
   );
   const [dataHash, setDataHash] = useState<string | null>(null);
-  const [isCachedInsights, setIsCachedInsights] = useState(false);
 
   // Utility functions for local storage and data hashing
   const generateDataHash = (data: DashboardData): string => {
@@ -156,10 +140,8 @@ const Dashboard: React.FC = () => {
         if (cachedInsights) {
           setInsights(cachedInsights);
           setInsightsError(null);
-          setIsCachedInsights(true);
         } else {
           // Auto-generate insights if no cache available
-          setIsCachedInsights(false);
           generateInsightsAutomatically(data, currentHash);
         }
       }
@@ -181,7 +163,6 @@ const Dashboard: React.FC = () => {
 
       // Save to cache
       saveInsightsToCache(hash, generatedInsights);
-      setIsCachedInsights(false);
     } catch (error) {
       console.error('Error generating insights:', error);
       setInsightsError(
@@ -209,7 +190,6 @@ const Dashboard: React.FC = () => {
 
       // Save to cache
       saveInsightsToCache(dataHash, generatedInsights);
-      setIsCachedInsights(false);
     } catch (error) {
       console.error('Error generating insights:', error);
       setInsightsError(
@@ -217,14 +197,6 @@ const Dashboard: React.FC = () => {
       );
     } finally {
       setInsightsLoading(false);
-    }
-  };
-
-  const clearInsightsCache = () => {
-    if (dataHash) {
-      localStorage.removeItem(`dashboard_insights_${dataHash}`);
-      setIsCachedInsights(false);
-      console.log('Cache cleared');
     }
   };
 
@@ -257,35 +229,6 @@ const Dashboard: React.FC = () => {
     negative: item.negative,
     neutral: item.neutral,
   }));
-
-  const platformData = platformStats.map((stat) => ({
-    name: stat.platform,
-    value: stat.count,
-  }));
-
-  // Use sentiment distribution from API - filter out 0 values
-  const sentimentPieData = sentimentDistribution
-    ? [
-        {
-          name: 'Positive',
-          value: sentimentDistribution.counts.positive,
-          percentage: sentimentDistribution.percentages.positive,
-          color: SENTIMENT_COLORS.positive,
-        },
-        {
-          name: 'Negative',
-          value: sentimentDistribution.counts.negative,
-          percentage: sentimentDistribution.percentages.negative,
-          color: SENTIMENT_COLORS.negative,
-        },
-        {
-          name: 'Neutral',
-          value: sentimentDistribution.counts.neutral,
-          percentage: sentimentDistribution.percentages.neutral,
-          color: SENTIMENT_COLORS.neutral,
-        },
-      ].filter((item) => item.value > 0) // Only show sentiments with data
-    : [];
 
   // Show loading state
   if (loading) {
@@ -465,7 +408,9 @@ const Dashboard: React.FC = () => {
                     sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}
                   >
                     <Chip
-                      label={`${alertStats?.by_severity.critical || 0} Critical`}
+                      label={`${
+                        alertStats?.by_severity.critical || 0
+                      } Critical`}
                       color="error"
                       size="small"
                     />
@@ -759,63 +704,6 @@ const Dashboard: React.FC = () => {
                     )}
                   </Grid>
                 )}
-              </Paper>
-            </Grid>
-
-            {/* Sentiment Distribution */}
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3, height: '400px' }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mb: 2,
-                  }}
-                >
-                  <Typography variant="h6">Sentiment Distribution</Typography>
-                  {sentimentDistribution && (
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <Chip
-                        label={`Total: ${sentimentDistribution.total_mentions}`}
-                        size="small"
-                        variant="outlined"
-                      />
-                      <Chip
-                        label={`Dominant: ${sentimentDistribution.dominant_sentiment}`}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                      />
-                    </Box>
-                  )}
-                </Box>
-                <ResponsiveContainer width="100%" height="85%">
-                  <PieChart>
-                    <Pie
-                      data={sentimentPieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(entry: any) =>
-                        `${entry.name}: ${entry.percentage.toFixed(1)}%`
-                      }
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {sentimentPieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: any, name: any, props: any) => [
-                        `${value} mentions (${props.payload.percentage.toFixed(1)}%)`,
-                        name,
-                      ]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
               </Paper>
             </Grid>
           </Grid>

@@ -56,7 +56,7 @@ const Mentions: React.FC = () => {
   const navigate = useNavigate();
   const { mentions, filter, loading, pagination, selectedMention, error } =
     useAppSelector((state) => state.mentions);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | ''>('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -74,7 +74,7 @@ const Mentions: React.FC = () => {
   const handleApplyFilters = () => {
     dispatch(
       setFilter({
-        platforms: selectedPlatforms.length > 0 ? selectedPlatforms : undefined,
+        platforms: selectedPlatform ? [selectedPlatform] : undefined,
         from_date: startDate || undefined,
         to_date: endDate || undefined,
       })
@@ -82,15 +82,15 @@ const Mentions: React.FC = () => {
   };
 
   const handleClearFilters = () => {
-    setSelectedPlatforms([]);
+    setSelectedPlatform('');
     setStartDate('');
     setEndDate('');
     dispatch(setFilter({}));
   };
 
-  const handlePlatformChange = (event: SelectChangeEvent<Platform[]>) => {
-    const value = event.target.value as Platform[];
-    setSelectedPlatforms(value);
+  const handlePlatformChange = (event: SelectChangeEvent<Platform | ''>) => {
+    const value = event.target.value as Platform | '';
+    setSelectedPlatform(value);
   };
 
   const getSentimentColor = (sentiment: Sentiment) => {
@@ -314,22 +314,10 @@ const Mentions: React.FC = () => {
           <Grid item xs={12} sm={6} md={4}>
             <FormControl fullWidth>
               <InputLabel>Platform</InputLabel>
-              <Select
-                multiple
-                value={selectedPlatforms}
-                onChange={handlePlatformChange}
-                renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((value: Platform) => (
-                      <Chip
-                        key={value}
-                        label={getPlatformLabel(value)}
-                        size="small"
-                      />
-                    ))}
-                  </Box>
-                )}
-              >
+              <Select value={selectedPlatform} onChange={handlePlatformChange}>
+                <MenuItem value="">
+                  <em>All Platforms</em>
+                </MenuItem>
                 {[
                   'App Store',
                   'Reddit',
@@ -424,15 +412,16 @@ const Mentions: React.FC = () => {
           paginationMode="server"
           rowCount={pagination.total}
           paginationModel={{
-            page: pagination.page,
+            page: pagination.page - 1, // Convert 1-based to 0-based for DataGrid
             pageSize: pagination.pageSize,
           }}
           onPaginationModelChange={(model: {
             page: number;
             pageSize: number;
           }) => {
-            if (model.page !== pagination.page) {
-              dispatch(setPage(model.page));
+            const newPage = model.page + 1; // Convert 0-based to 1-based for backend
+            if (newPage !== pagination.page) {
+              dispatch(setPage(newPage));
             }
             if (model.pageSize !== pagination.pageSize) {
               dispatch(setPageSize(model.pageSize));

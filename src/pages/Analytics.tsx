@@ -1,14 +1,4 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Grid,
-  Paper,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Chip, Grid, Paper, Typography } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -20,8 +10,9 @@ import {
   BarChart,
   CartesianGrid,
   Legend,
-  Line,
-  LineChart,
+  PieChart,
+  Pie,
+  Cell,
   PolarAngleAxis,
   PolarGrid,
   PolarRadiusAxis,
@@ -34,7 +25,10 @@ import {
 } from 'recharts';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchAnalyticsData } from '@/store/slices/analytics';
+import {
+  fetchAnalyticsData,
+  fetchDashboardData,
+} from '@/store/slices/analytics';
 
 const Analytics: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -43,6 +37,7 @@ const Analytics: React.FC = () => {
     platformSentimentData,
     radarChartData,
     detailedTopics,
+    sentimentDistribution,
     loading,
     error,
   } = useAppSelector((state) => state.analytics);
@@ -71,6 +66,7 @@ const Analytics: React.FC = () => {
     console.log('Analytics: Fetching data...');
     const daysBack = calculateDaysBack(startDate, endDate);
     dispatch(fetchAnalyticsData({ productId, daysBack }));
+    dispatch(fetchDashboardData({ productId, daysBack }));
   }, [dispatch, productId, startDate, endDate]);
 
   // Handle filter changes
@@ -117,6 +113,37 @@ const Analytics: React.FC = () => {
     topic: item.category,
     score: item.value,
   }));
+
+  // Sentiment colors for pie chart
+  const SENTIMENT_COLORS = {
+    positive: '#4caf50',
+    negative: '#f44336',
+    neutral: '#9e9e9e',
+  };
+
+  // Use sentiment distribution from API - filter out 0 values
+  const sentimentPieData = sentimentDistribution
+    ? [
+        {
+          name: 'Positive',
+          value: sentimentDistribution.counts.positive,
+          percentage: sentimentDistribution.percentages.positive,
+          color: SENTIMENT_COLORS.positive,
+        },
+        {
+          name: 'Negative',
+          value: sentimentDistribution.counts.negative,
+          percentage: sentimentDistribution.percentages.negative,
+          color: SENTIMENT_COLORS.negative,
+        },
+        {
+          name: 'Neutral',
+          value: sentimentDistribution.counts.neutral,
+          percentage: sentimentDistribution.percentages.neutral,
+          color: SENTIMENT_COLORS.neutral,
+        },
+      ].filter((item) => item.value > 0) // Only show sentiments with data
+    : [];
 
   // Show loading state
   if (loading) {
@@ -211,7 +238,10 @@ const Analytics: React.FC = () => {
             <Typography variant="caption" color="text.secondary">
               Date range:{' '}
               {startDate && endDate
-                ? `${format(startDate, 'MMM dd, yyyy')} - ${format(endDate, 'MMM dd, yyyy')} (${calculateDaysBack(startDate, endDate)} days)`
+                ? `${format(startDate, 'MMM dd, yyyy')} - ${format(
+                    endDate,
+                    'MMM dd, yyyy'
+                  )} (${calculateDaysBack(startDate, endDate)} days)`
                 : 'Select date range'}
             </Typography>
           </Box>
@@ -219,7 +249,7 @@ const Analytics: React.FC = () => {
 
         <Grid container spacing={3} sx={{ mt: 2 }}>
           {/* Platform Sentiment Breakdown */}
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={12}>
             <Paper sx={{ p: 3, height: '400px' }}>
               <Typography variant="h6" gutterBottom>
                 Sentiment by Platform
@@ -240,7 +270,7 @@ const Analytics: React.FC = () => {
           </Grid>
 
           {/* Topic Radar Chart */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3, height: '400px' }}>
               <Typography variant="h6" gutterBottom>
                 Topic Analysis
@@ -263,6 +293,65 @@ const Analytics: React.FC = () => {
                   />
                   <Tooltip />
                 </RadarChart>
+              </ResponsiveContainer>
+            </Paper>
+          </Grid>
+
+          {/* Sentiment Distribution */}
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3, height: '400px' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 2,
+                }}
+              >
+                <Typography variant="h6">Sentiment Distribution</Typography>
+                {sentimentDistribution && (
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Chip
+                      label={`Total: ${sentimentDistribution.total_mentions}`}
+                      size="small"
+                      variant="outlined"
+                    />
+                    <Chip
+                      label={`Dominant: ${sentimentDistribution.dominant_sentiment}`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
+                  </Box>
+                )}
+              </Box>
+              <ResponsiveContainer width="100%" height="85%">
+                <PieChart>
+                  <Pie
+                    data={sentimentPieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={(entry: any) =>
+                      `${entry.name}: ${entry.percentage.toFixed(1)}%`
+                    }
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {sentimentPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: any, name: any, props: any) => [
+                      `${value} mentions (${props.payload.percentage.toFixed(
+                        1
+                      )}%)`,
+                      name,
+                    ]}
+                  />
+                </PieChart>
               </ResponsiveContainer>
             </Paper>
           </Grid>
@@ -333,7 +422,11 @@ const Analytics: React.FC = () => {
                           }
                         />
                         <Chip
-                          label={`Change: ${topic.change_from_previous.absolute_change > 0 ? '+' : ''}${topic.change_from_previous.absolute_change}`}
+                          label={`Change: ${
+                            topic.change_from_previous.absolute_change > 0
+                              ? '+'
+                              : ''
+                          }${topic.change_from_previous.absolute_change}`}
                           size="small"
                           variant="outlined"
                         />
