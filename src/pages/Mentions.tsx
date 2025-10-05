@@ -2,7 +2,6 @@ import {
   Android as AndroidIcon,
   Apple as AppleIcon,
   CheckCircle as CheckCircleIcon,
-  FilterList as FilterIcon,
   Forum as ForumIcon,
   Instagram as InstagramIcon,
   OpenInNew as OpenInNewIcon,
@@ -71,7 +70,8 @@ const Mentions: React.FC = () => {
     );
   }, [dispatch, filter, pagination.page, pagination.pageSize]);
 
-  const handleApplyFilters = () => {
+  // Auto-apply filters when values change
+  useEffect(() => {
     dispatch(
       setFilter({
         platforms: selectedPlatform ? [selectedPlatform] : undefined,
@@ -79,7 +79,7 @@ const Mentions: React.FC = () => {
         to_date: endDate || undefined,
       })
     );
-  };
+  }, [dispatch, selectedPlatform, startDate, endDate]);
 
   const handleClearFilters = () => {
     setSelectedPlatform('');
@@ -365,19 +365,7 @@ const Mentions: React.FC = () => {
             />
           </Grid>
 
-          <Grid item xs={6} sm={3} md={1.5}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<FilterIcon />}
-              onClick={handleApplyFilters}
-              sx={{ height: 56 }}
-            >
-              Apply
-            </Button>
-          </Grid>
-
-          <Grid item xs={6} sm={3} md={1.5}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button
               fullWidth
               variant="outlined"

@@ -2,8 +2,8 @@ import {
   AutoAwesome as AIIcon,
   CheckCircle as CheckCircleIcon,
   ContentCopy as CopyIcon,
+  OpenInNew as OpenInNewIcon,
   Refresh as RefreshIcon,
-  Send as SendIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -35,7 +35,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { generateResponse } from '@/store/slices/responses';
+import { generateResponse, setCurrentResponse } from '@/store/slices/responses';
 import { markMention } from '@/store/slices/mentions';
 import { ResponseLanguage, ResponseStyle } from '@/types/response';
 import { Mention } from '@/types/mention';
@@ -130,6 +130,14 @@ const Responses: React.FC = () => {
     }
   }, [location.state]);
 
+  // Clear response when leaving the tab
+  useEffect(() => {
+    return () => {
+      // Cleanup function: clear response when component unmounts
+      dispatch(setCurrentResponse(null));
+    };
+  }, [dispatch]);
+
   const handleGenerate = () => {
     if (!mentionContent) return;
 
@@ -147,6 +155,12 @@ const Responses: React.FC = () => {
   const handleSendResponse = () => {
     if (currentResponse && mentionId && !sendResponseLoading) {
       setSendResponseLoading(true);
+
+      // Open the original resource in a new tab if available
+      if (mentionData?.metadata?.source_url) {
+        window.open(mentionData.metadata.source_url, '_blank');
+      }
+
       // Simulate a brief delay for sending response
       setTimeout(() => {
         setSendResponseLoading(false);
@@ -468,7 +482,9 @@ const Responses: React.FC = () => {
                         <ListItem key={index}>
                           <ListItemText
                             primary={link.title}
-                            secondary={`Relevance: ${(link.relevance_score * 100).toFixed(0)}%`}
+                            secondary={`Relevance: ${(
+                              link.relevance_score * 100
+                            ).toFixed(0)}%`}
                           />
                         </ListItem>
                       ))}
@@ -484,13 +500,13 @@ const Responses: React.FC = () => {
                     sendResponseLoading ? (
                       <CircularProgress size={20} />
                     ) : (
-                      <SendIcon />
+                      <OpenInNewIcon />
                     )
                   }
                   onClick={handleSendResponse}
                   disabled={sendResponseLoading}
                 >
-                  {sendResponseLoading ? 'Sending...' : 'Send Response'}
+                  {sendResponseLoading ? 'Opening...' : 'Go to Resource'}
                 </Button>
               </Box>
             )}

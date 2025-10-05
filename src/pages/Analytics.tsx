@@ -391,46 +391,6 @@ const Analytics: React.FC = () => {
                           variant="outlined"
                         />
                       </Box>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          gap: 1,
-                          alignItems: 'center',
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <Chip
-                          label={`Sentiment: ${topic.sentiment}`}
-                          size="small"
-                          color={
-                            topic.sentiment_raw > 0
-                              ? 'success'
-                              : topic.sentiment_raw < 0
-                                ? 'error'
-                                : 'default'
-                          }
-                        />
-                        <Chip
-                          label={`Trend: ${topic.trend}`}
-                          size="small"
-                          color={
-                            topic.trend_raw > 0
-                              ? 'success'
-                              : topic.trend_raw < 0
-                                ? 'error'
-                                : 'default'
-                          }
-                        />
-                        <Chip
-                          label={`Change: ${
-                            topic.change_from_previous.absolute_change > 0
-                              ? '+'
-                              : ''
-                          }${topic.change_from_previous.absolute_change}`}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </Box>
                       <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                         <Chip
                           label={`Positive: ${topic.sentiment_breakdown.positive}`}
